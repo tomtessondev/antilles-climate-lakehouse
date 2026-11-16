@@ -1,0 +1,124 @@
+{
+ "id": "6569b51ae64326786e4e8e1a",
+ "resources": [
+  {
+   "id": "bbe7b989-6cf9-4966-a0f9-2488572d982f",
+   "title": "QUOT_departement_01_periode_avant-1949_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_01_avant-1949_RR-T-Vent.csv.gz",
+   "last_modified": "2026-07-08T10:26:19+00:00",
+   "checksum": null
+  },
+  {
+   "id": "acda7594-692b-4a92-8115-95d290c71509",
+   "title": "QUOT_departement_01_periode_avant-1949_autres-parametres",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_01_avant-1949_autres-parametres.csv.gz",
+   "last_modified": "2026-07-08T10:43:08+00:00",
+   "checksum": null
+  },
+  {
+   "id": "c79aaafe-8017-4d2b-8884-57b5391da5bc",
+   "title": "QUOT_departement_01_periode_1950-2024_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_01_previous-1950-2024_RR-T-Vent.csv.gz",
+   "last_modified": "2026-11-03T06:54:34+00:00",
+   "checksum": null
+  },
+  {
+   "id": "5c857920-ea0d-4b43-ac24-9a7b6beb8051",
+   "title": "QUOT_departement_01_periode_1950-2024_autres-parametres",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_01_previous-1950-2024_autres-parametres.csv.gz",
+   "last_modified": "2026-11-03T07:01:47+00:00",
+   "checksum": null
+  },
+  {
+   "id": "1fb641c2-fb6b-4fa1-8961-a41c349e8629",
+   "title": "QUOT_departement_01_periode_2025-2026_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_01_latest-2025-2026_RR-T-Vent.csv.gz",
+   "last_modified": "2026-11-15T03:03:21+00:00",
+   "checksum": null
+  },
+  {
+   "id": "98852d18-6580-47d4-9442-0bb3184896c8",
+   "title": "QUOT_departement_01_periode_2025-2026_autres-parametres",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_01_latest-2025-2026_autres-parametres.csv.gz",
+   "last_modified": "2026-11-15T03:05:22+00:00",
+   "checksum": null
+  },
+  {
+   "id": "c79177c7-f14f-4e6e-a66e-035ace405f83",
+   "title": "QUOT_departement_971_periode_avant-1949_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_971_avant-1949_RR-T-Vent.csv.gz",
+   "last_modified": "2026-07-08T10:28:57+00:00",
+   "checksum": null
+  },
+  {
+   "id": "1d2a89ae-aa3c-4c12-aa44-c3f148e5463c",
+   "title": "QUOT_departement_971_periode_1950-2024_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_971_previous-1950-2024_RR-T-Vent.csv.gz",
+   "last_modified": "2026-11-03T06:59:50+00:00",
+   "checksum": null
+  },
+  {
+   "id": "a2229aa3-f001-45ba-a6ef-b3b6499dfda4",
+   "title": "QUOT_departement_971_periode_1950-2024_autres-parametres",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_971_previous-1950-2024_autres-parametres.csv.gz",
+   "last_modified": "2026-11-03T07:04:43+00:00",
+   "checksum": null
+  },
+  {
+   "id": "aac649b5-fcf2-4249-aae5-ae3846ee7239",
+   "title": "QUOT_departement_971_periode_2025-2026_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_971_latest-2025-2026_RR-T-Vent.csv.gz",
+   "last_modified": "2026-11-13T06:55:50+00:00",
+   "checksum": null
+  },
+  {
+   "id": "f08df376-9104-451a-9c56-8a98e306410a",
+   "title": "QUOT_departement_971_periode_2025-2026_autres-parametres",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_971_latest-2025-2026_autres-parametres.csv.gz",
+   "last_modified": "2026-11-13T06:56:43+00:00",
+   "checksum": null
+  },
+  {
+   "id": "5b7b6b17-f202-42f9-81f9-ed709e592960",
+   "title": "QUOT_departement_972_periode_avant-1949_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_972_avant-1949_RR-T-Vent.csv.gz",
+   "last_modified": "2026-07-08T10:28:58+00:00",
+   "checksum": null
+  },
+  {
+   "id": "df118833-543e-43b2-aba9-cf242eb03d06",
+   "title": "QUOT_departement_972_periode_avant-1949_autres-parametres",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_972_avant-1949_autres-parametres.csv.gz",
+   "last_modified": "2026-07-08T10:45:44+00:00",
+   "checksum": null
+  },
+  {
+   "id": "72654028-7f2f-4588-8dd6-67c52093e699",
+   "title": "QUOT_departement_972_periode_1950-2024_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_972_previous-1950-2024_RR-T-Vent.csv.gz",
+   "last_modified": "2026-10-02T06:24:46+00:00",
+   "checksum": null
+  },
+  {
+   "id": "f3af98aa-0d1a-428e-93cd-db7709c52e1a",
+   "title": "QUOT_departement_972_periode_1950-2024_autres-parametres",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_972_previous-1950-2024_autres-parametres.csv.gz",
+   "last_modified": "2026-11-03T07:04:45+00:00",
+   "checksum": null
+  },
+  {
+   "id": "54f0f76f-4d9f-4ff3-ba95-b3b898c9d407",
+   "title": "QUOT_departement_972_periode_2025-2026_RR-T-Vent",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_972_latest-2025-2026_RR-T-Vent.csv.gz",
+   "last_modified": "2026-11-15T03:05:00+00:00",
+   "checksum": null
+  },
+  {
+   "id": "71fd3d01-6d40-498e-9b36-0a03f0e61477",
+   "title": "QUOT_departement_972_periode_2025-2026_autres-parametres",
+   "url": "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_972_latest-2025-2026_autres-parametres.csv.gz",
+   "last_modified": "2026-11-13T06:56:44+00:00",
+   "checksum": null
+  }
+ ]
+}
