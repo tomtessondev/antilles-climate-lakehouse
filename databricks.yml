@@ -1,0 +1,20 @@
+# Databricks Asset Bundle: the job and its wheel, deployed with the Databricks CLI from the
+# owner's machine (`databricks bundle deploy`, then `databricks bundle run climate`).
+# Databricks Free Edition: serverless only, one workspace; the host comes from the CLI
+# profile set up by `databricks auth login`, never from this file.
+bundle:
+  name: antilles-climate-lakehouse
+
+include:
+  - resources/*.yml
+
+artifacts:
+  default:
+    type: whl
+    path: .
+    build: python -m pip wheel --no-deps --wheel-dir dist .
+
+targets:
+  dev:
+    mode: development
+    default: true

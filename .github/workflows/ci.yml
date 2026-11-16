@@ -17,7 +17,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - run: pip install -e ".[dev]"
+      - run: pip install -e ".[local,dev]"
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy

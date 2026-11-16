@@ -9,7 +9,9 @@ from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
 
 
-def local_session(warehouse: Path) -> SparkSession:
+def local_session(warehouse: Path, metastore: Path | None = None) -> SparkSession:
+    """With a metastore folder, table definitions persist between processes (each job step
+    of `make run-local` is its own process); without one they live in memory (tests)."""
     builder = (
         SparkSession.builder.master("local[2]")
         .appName("antilles-climate-lakehouse")
@@ -24,5 +26,10 @@ def local_session(warehouse: Path) -> SparkSession:
         .config("spark.sql.shuffle.partitions", "4")
         .config("spark.ui.enabled", "false")
     )
+    if metastore is not None:
+        builder = builder.enableHiveSupport().config(
+            "javax.jdo.option.ConnectionURL",
+            f"jdbc:derby:;databaseName={metastore};create=true",
+        )
     session: SparkSession = configure_spark_with_delta_pip(builder).getOrCreate()
     return session

@@ -6,13 +6,16 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.27",
-    # Local runs and tests; on Databricks the serverless environment provides Spark.
-    # Same Spark as serverless environment 4 (Spark 4.0, Python 3.12, JDK 17).
-    "pyspark==4.0.1",
-    "delta-spark==4.0.0",
 ]
 
 [project.optional-dependencies]
+# Local runs and tests only. On Databricks the serverless environment provides Spark, and
+# installing pyspark there would replace it: the job's wheel must not depend on it.
+# Same Spark as serverless environment 4 (Spark 4.0, Python 3.12, JDK 17).
+local = [
+    "pyspark==4.0.1",
+    "delta-spark==4.0.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",

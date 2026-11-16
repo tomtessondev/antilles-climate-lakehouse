@@ -5,7 +5,7 @@ JAVA_HOME ?= /opt/homebrew/opt/openjdk@17
 export JAVA_HOME
 
 install:
-	pip install -e ".[dev]"
+	pip install -e ".[local,dev]"
 
 lint:
 	ruff check .
