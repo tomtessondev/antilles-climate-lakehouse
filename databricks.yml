@@ -13,6 +13,9 @@ artifacts:
     type: whl
     path: .
     build: python -m pip wheel --no-deps --wheel-dir dist .
+    # Serverless environments cache a wheel by version: a new version on every deploy
+    # makes a code change actually run.
+    dynamic_version: true
 
 targets:
   dev:
