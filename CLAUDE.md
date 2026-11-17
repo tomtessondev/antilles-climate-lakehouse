@@ -22,7 +22,7 @@ matter more than feature count. Every change should be something a recruiter can
     for run-local so separate steps see the same tables)
 - Databricks Asset Bundle (`databricks.yml`, `resources/climate_job.yml`): serverless job
   `antilles-climate`, tasks ingest → bronze → silver → gold, schedule paused. Workspace:
-  Databricks Free Edition, CLI profile `dbc-b0e23669-7e9a`. PySpark is a `local` extra:
+  Databricks Free Edition, CLI profile created by `databricks auth login`. PySpark is a `local` extra:
   never a dependency of the wheel (it would replace the serverless Spark).
 - `scripts/charts.py`: README charts from the local gold tables.
 - PySpark 4.0 + delta-spark 4.0, the versions of Databricks serverless environment 4

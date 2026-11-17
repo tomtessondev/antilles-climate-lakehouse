@@ -12,3 +12,4 @@ derby.log
 .databricks/
 dist/
 build/
+.gstack/

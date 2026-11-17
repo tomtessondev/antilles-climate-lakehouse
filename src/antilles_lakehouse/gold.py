@@ -57,6 +57,8 @@ def _monthly(clean: DataFrame) -> DataFrame:
         func.sum("rr_mm").alias("rr_sum"),
         func.count(func.when(func.col("tx_c") >= VERY_HOT_C, 1)).alias("very_hot_days"),
         func.count(func.when(func.col("rr_mm") >= HEAVY_RAIN_MM, 1)).alias("heavy_rain_days"),
+        func.count("tx_c").alias("tx_days"),
+        func.count("rr_mm").alias("rr_days"),
         (func.count("tx_c") >= COMPLETE * days_in_month).alias("tx_complete"),
         (func.count("rr_mm") >= COMPLETE * days_in_month).alias("rr_complete"),
     )
@@ -120,13 +122,22 @@ def _extremes(clean: DataFrame, monthly: DataFrame, last_year: int) -> DataFrame
     yearly = monthly.groupBy("station_id", "territory", "year").agg(
         func.sum("very_hot_days").alias("very_hot_days"),
         func.sum("heavy_rain_days").alias("heavy_rain_days"),
+        func.sum("tx_days").alias("tx_days"),
+        func.sum("rr_days").alias("rr_days"),
     )
+    days_in_year = func.dayofyear(func.make_date(func.col("year"), func.lit(12), func.lit(31)))
     frames = []
-    for indicator, value in (("very_hot_days", "tx_c"), ("heavy_rain_days", "rr_mm")):
+    for indicator, value, measured in (
+        ("very_hot_days", "tx_c", "tx_days"),
+        ("heavy_rain_days", "rr_mm", "rr_days"),
+    ):
         panel = _panel(clean, value, last_year)
+        # A panel station counts in a year only if that year is itself 80 % measured:
+        # a station with three months of data would otherwise weigh as a whole year.
         frames.append(
             yearly.join(panel, ["station_id", "territory"])
             .filter(func.col("year").between(NORMAL_FROM, last_year))
+            .filter(func.col(measured) >= COMPLETE * days_in_year)
             .groupBy("territory", "year")
             .agg(
                 func.count("*").alias("panel_size"),

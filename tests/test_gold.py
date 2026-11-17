@@ -117,6 +117,24 @@ def test_station_opening_late_is_not_in_the_panel(spark: SparkSession) -> None:
     assert row.mean_per_station == 0.0  # the long-series station never reaches 32 °C
 
 
+def test_a_partial_year_does_not_count_as_a_year(spark: SparkSession) -> None:
+    """Both stations are in the panel (80 % of days in every decade), but the first one has
+    only three months of 2025: its few days must not count as a whole year."""
+    build(
+        spark,
+        "g_partial",
+        days(spark, "97101014", "1991-01-01", "2025-03-31", tx=29.0),
+        days(spark, "97110001", "1991-01-01", "2025-12-31", tx=33.0),
+    )
+    (row,) = (
+        spark.table("g_partial_gold_extremes")
+        .filter("territory = 'Guadeloupe' AND indicator = 'very_hot_days' AND year = 2025")
+        .collect()
+    )
+    assert row.panel_size == 1
+    assert row.mean_per_station == 365.0
+
+
 def test_records_keep_the_date(spark: SparkSession) -> None:
     build(
         spark,

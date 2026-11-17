@@ -10,7 +10,9 @@ Unity Catalog.
 
 Both islands warm together: the yearly mean departure of the daily maximum from its
 1991-2020 normal goes from about −1 °C in the 1950s-1970s to +1.2 °C in 2024, the warmest
-year of the series.
+year of the series. Each station is compared with its own normal, then the yearly value is
+the mean over the stations measured that year; the network changes over the decades, which
+comparing each station with itself limits but does not remove.
 
 ![Days at or above 32 °C per year, mean per long-series station](docs/images/very_hot_days.png)
 
@@ -61,16 +63,19 @@ uses the rain, temperature and wind files ("RR-T-Vent") of departments 971 and 9
   copy per file: the same bytes are skipped, a changed file replaces its own rows, and
   Delta's history keeps the replaced copies. Silver keeps, per station and day, the row of
   the most recently modified file and merges it: a row is rewritten only when a value or a
-  quality code changed, so a correction flows through and an unchanged republication writes
-  nothing. The tests check both through Delta's operation metrics.
+  quality code changed, so a correction rewrites that one row and an unchanged
+  republication rewrites none (the tests check both through Delta's operation metrics).
+  Gold is small and rebuilt on every run.
 - **Territories.** The 971 files also cover Saint-Barthélemy and Saint-Martin, over 200 km
   north of Guadeloupe; each station gets its territory from the commune code in its id.
 - **A changing station network.** Stations open and close over the decades; summing them
   would show a trend made by the network. Every indicator is computed per station, and a
   territory's figure is the mean over a fixed panel of long-series stations: 80 % of days
-  present in every decade from 1991 to the last complete year. Few stations have such a
-  temperature series: the panel is 2 stations in Guadeloupe and 10 in Martinique for hot
-  days, 18 and 21 for heavy rain. `gold_extremes` stores the panel size with each figure.
+  present in every decade from 1991 to the last complete year. A panel station counts in a
+  given year only if that year is itself 80 % measured, so a year with three months of
+  data does not pass for a calm year. Few stations have such a temperature series: up to 2
+  stations in Guadeloupe and 10 in Martinique for hot days, 18 and 21 for heavy rain.
+  `gold_extremes` stores, with each figure, how many stations it is the mean of.
 - **Quality.** Doubtful values stay in silver with their code but never reach gold;
   physically impossible ones (outside −10…50 °C, 0…1500 mm, 0…100 m/s) become null.
 - **Thresholds.** A very hot day reaches 32 °C; a heavy-rain day, 50 mm. The normal is the

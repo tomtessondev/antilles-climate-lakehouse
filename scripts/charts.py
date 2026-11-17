@@ -36,7 +36,7 @@ def very_hot_days(spark: SparkSession, out: Path) -> None:
             color=colour,
             marker="o",
             markersize=3,
-            label=f"{territory} ({panel} long-series stations)",
+            label=f"{territory} (up to {panel} long-series stations)",
         )
     ax.set_title("Days at or above 32 °C per year, mean per long-series station")
     ax.set_ylabel("days")
