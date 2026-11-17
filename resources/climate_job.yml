@@ -1,0 +1,47 @@
+resources:
+  jobs:
+    climate:
+      name: antilles-climate
+      description: >
+        Météo-France daily climate series for Guadeloupe and Martinique, through bronze,
+        silver and gold Delta tables in antilles.climate.
+      # Météo-France republishes its files at most a few times a month: once a month is
+      # enough. Paused until the owner turns it on.
+      schedule:
+        quartz_cron_expression: "0 0 6 2 * ?"
+        timezone_id: America/Guadeloupe
+        pause_status: PAUSED
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"  # Python 3.12, Spark 4.0, as the local tests
+            dependencies:
+              - ../dist/*.whl
+      tasks:
+        - task_key: ingest
+          environment_key: default
+          python_wheel_task:
+            package_name: antilles_climate_lakehouse
+            entry_point: antilles-lakehouse
+            parameters: ["ingest"]
+        - task_key: bronze
+          depends_on: [{task_key: ingest}]
+          environment_key: default
+          python_wheel_task:
+            package_name: antilles_climate_lakehouse
+            entry_point: antilles-lakehouse
+            parameters: ["bronze"]
+        - task_key: silver
+          depends_on: [{task_key: bronze}]
+          environment_key: default
+          python_wheel_task:
+            package_name: antilles_climate_lakehouse
+            entry_point: antilles-lakehouse
+            parameters: ["silver"]
+        - task_key: gold
+          depends_on: [{task_key: silver}]
+          environment_key: default
+          python_wheel_task:
+            package_name: antilles_climate_lakehouse
+            entry_point: antilles-lakehouse
+            parameters: ["gold"]
