@@ -3,7 +3,8 @@ site's climate explorer (contract in antilles-data-pipeline's
 `docs/superpowers/specs/2026-11-21-explorers-design.md`).
 
 - `territory_anomalies`: per territory, year and month, the mean of the station anomalies
-  and how many stations it is the mean of (all stations with a normal, not the panel).
+  and, for each of Tx and rain, how many stations it is the mean of (`tx_stations`,
+  `rr_stations`: all stations with a normal and that month complete, not the panel).
 - `station_year_anomalies`: per station and year, the mean Tx anomaly of its complete
   months, kept only with at least 10 of them: fewer would make a season pass for a year.
 - Anomalies and means are rounded to 0.01; dates are ISO strings.
@@ -52,10 +53,17 @@ def _territory_anomalies(anomalies: DataFrame) -> DataFrame:
         .agg(
             func.avg("tx_anomaly").alias("tx_anomaly"),
             func.avg("rr_anomaly").alias("rr_anomaly"),
-            func.count("*").alias("stations"),
+            func.count("tx_anomaly").alias("tx_stations"),
+            func.count("rr_anomaly").alias("rr_stations"),
         )
         .select(
-            "territory", "year", "month", _round("tx_anomaly"), _round("rr_anomaly"), "stations"
+            "territory",
+            "year",
+            "month",
+            _round("tx_anomaly"),
+            _round("rr_anomaly"),
+            "tx_stations",
+            "rr_stations",
         )
     )
 
@@ -106,9 +114,18 @@ def build_export(
     }
 
 
+class ExportError(Exception):
+    """The document must not reach the site: the published file is left as it was."""
+
+
 def write_export(spark: SparkSession, stations: str, prefix: str, folder: Path) -> Path:
+    """Refuses, before writing anything, an export without stations or territory
+    anomalies: a broken run would otherwise empty the site's explorer."""
+    document = build_export(spark, stations, prefix)
+    for key in ("stations", "territory_anomalies"):
+        if not document[key]:
+            raise ExportError(f"{key} is empty: refusing to write {FILE_NAME}")
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / FILE_NAME
-    document = build_export(spark, stations, prefix)
     path.write_text(json.dumps(document, ensure_ascii=False, separators=(",", ":")))
     return path

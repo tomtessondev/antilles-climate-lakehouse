@@ -126,12 +126,14 @@ explorer reads it from the `data` branch of this repository:
 | --- | --- |
 | `generated_at`, `normal_period` | ISO UTC time of the export; `"1991-2020"` |
 | `stations` | id, name, territory, lat, lon, altitude, first and last year of data |
-| `territory_anomalies` | per territory, year and month: mean of the station Tx and rain anomalies, number of stations |
+| `territory_anomalies` | per territory, year and month: mean of the station Tx and rain anomalies, and the number of stations behind each (`tx_stations`, `rr_stations`) |
 | `station_year_anomalies` | per station and year: mean Tx anomaly of its complete months, only with 10 or more |
 | `extremes` | `gold_extremes`: hot and heavy-rain days per panel station, with the panel size |
 | `records` | `gold_records`: each station's highest Tx, daily rain and gust, with the date |
 
-Anomalies and means are rounded to 0.01. The contract is checked by `tests/test_export.py`
+Anomalies and means are rounded to 0.01. The export refuses to write a document without
+stations or territory anomalies (the task fails and the previous file stays published).
+The contract is checked by `tests/test_export.py`
 and, on the site, by a zod schema.
 
 `.github/workflows/publish.yml` runs on the 2nd of each month at 14:00 UTC (after the job's

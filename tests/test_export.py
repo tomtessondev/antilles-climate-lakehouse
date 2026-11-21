@@ -9,9 +9,10 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
+import pytest
 from pyspark.sql import SparkSession
 
-from antilles_lakehouse.export import build_export, write_export
+from antilles_lakehouse.export import ExportError, build_export, write_export
 
 ANOMALIES = (
     "station_id STRING, territory STRING, year INT, month INT, tx_mean DOUBLE, "
@@ -42,8 +43,9 @@ def build(
     anomalies: list[tuple[object, ...]],
     extremes: list[tuple[object, ...]] | None = None,
     records: list[tuple[object, ...]] | None = None,
+    with_stations: bool = True,
 ) -> None:
-    stations = [(*GUADELOUPE, "Guadeloupe"), (*MARTINIQUE, "Martinique")]
+    stations = [(*GUADELOUPE, "Guadeloupe"), (*MARTINIQUE, "Martinique")] if with_stations else []
     for rows, schema, table in (
         (stations, STATIONS, f"{name}_stations"),
         (anomalies, ANOMALIES, f"{name}_gold_anomalies"),
@@ -90,7 +92,8 @@ def test_document_follows_the_contract(spark: SparkSession, tmp_path: Path) -> N
         "month": 1,
         "tx_anomaly": 1.0,
         "rr_anomaly": 10.0,
-        "stations": 1,
+        "tx_stations": 1,
+        "rr_stations": 1,
     }
     assert document["station_year_anomalies"] == [
         {"station_id": "97101014", "year": 2025, "tx_anomaly": 1.0, "months": 12}
@@ -138,7 +141,8 @@ def test_territory_month_is_the_mean_of_its_stations(spark: SparkSession) -> Non
             "month": 1,
             "tx_anomaly": 1.5,
             "rr_anomaly": 20.0,
-            "stations": 2,
+            "tx_stations": 2,
+            "rr_stations": 1,
         },
         {
             "territory": "Martinique",
@@ -146,7 +150,8 @@ def test_territory_month_is_the_mean_of_its_stations(spark: SparkSession) -> Non
             "month": 1,
             "tx_anomaly": -0.5,
             "rr_anomaly": -4.0,
-            "stations": 1,
+            "tx_stations": 1,
+            "rr_stations": 1,
         },
     ]
 
@@ -178,3 +183,24 @@ def test_values_are_rounded_to_a_hundredth(spark: SparkSession) -> None:
     assert (month["tx_anomaly"], month["rr_anomaly"]) == (0.33, 12.35)
     assert document["station_year_anomalies"][0]["tx_anomaly"] == 0.33
     assert document["extremes"][0]["mean_per_station"] == 0.67
+
+
+@pytest.mark.parametrize(
+    ("with_stations", "anomalies", "empty"),
+    [
+        (False, [anomaly("97101014", "Guadeloupe", 2025, 1, 1.0, 10.0)], "stations"),
+        (True, [], "territory_anomalies"),
+    ],
+)
+def test_an_empty_export_is_refused_and_nothing_written(
+    spark: SparkSession,
+    tmp_path: Path,
+    with_stations: bool,
+    anomalies: list[tuple[object, ...]],
+    empty: str,
+) -> None:
+    build(spark, f"x_empty_{empty}", anomalies, with_stations=with_stations)
+    folder = tmp_path / "exports"
+    with pytest.raises(ExportError, match=f"{empty} is empty"):
+        write_export(spark, f"x_empty_{empty}_stations", f"x_empty_{empty}_gold", folder)
+    assert not (folder / "climate.json").exists()
