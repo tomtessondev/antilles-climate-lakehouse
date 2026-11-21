@@ -1,8 +1,9 @@
-"""Entry points of the job's four tasks: `antilles-lakehouse <step> [--local DIR]`.
+"""Entry points of the job's five tasks: `antilles-lakehouse <step> [--local DIR]`.
 
 On Databricks each task runs one step on the platform's Spark, against Unity Catalog. With
 `--local DIR` the same steps run on a local Spark, tables and files under DIR. The ingest
-step writes a manifest of the landed files so that bronze can run as a separate task.
+step writes a manifest of the landed files so that bronze can run as a separate task; the
+export step writes climate.json to the exports volume (DIR/exports locally).
 """
 
 from __future__ import annotations
@@ -17,12 +18,13 @@ import httpx
 from pyspark.sql import SparkSession
 
 from antilles_lakehouse.bronze import load_bronze
+from antilles_lakehouse.export import write_export
 from antilles_lakehouse.gold import build_gold
 from antilles_lakehouse.silver import build_silver
 from antilles_lakehouse.sources import LandedFile, Resource, climate_resources, fetch_dataset, land
 from antilles_lakehouse.tables import Tables
 
-STEPS = ("ingest", "bronze", "silver", "gold")
+STEPS = ("ingest", "bronze", "silver", "gold", "export")
 
 
 def _session(local: Path | None) -> SparkSession:
@@ -41,6 +43,7 @@ def _prepare(spark: SparkSession, tables: Tables) -> None:
     spark.sql(f"CREATE CATALOG IF NOT EXISTS {tables.catalog}")
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {name}")
     spark.sql(f"CREATE VOLUME IF NOT EXISTS {name}.landing")
+    spark.sql(f"CREATE VOLUME IF NOT EXISTS {name}.exports")
 
 
 def ingest(spark: SparkSession, tables: Tables) -> None:
@@ -83,8 +86,12 @@ def run(step: str, spark: SparkSession, tables: Tables) -> None:
         load_bronze(spark, _landed(tables), tables.bronze)
     elif step == "silver":
         build_silver(spark, tables.bronze, tables.silver_daily, tables.silver_stations)
-    else:
+    elif step == "gold":
         build_gold(spark, tables.silver_daily, tables.silver_stations, tables.gold_prefix)
+    else:
+        # The exports volume is newer than the job's first runs: created here too.
+        _prepare(spark, tables)
+        write_export(spark, tables.silver_stations, tables.gold_prefix, tables.exports)
 
 
 def main(argv: list[str] | None = None) -> None:

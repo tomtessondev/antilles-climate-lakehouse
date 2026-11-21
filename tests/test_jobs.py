@@ -1,4 +1,4 @@
-"""The four job steps, run the way the Databricks job runs them, on a local Spark."""
+"""The five job steps, run the way the Databricks job runs them, on a local Spark."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def test_pipeline_runs_end_to_end_locally(spark: SparkSession, tmp_path: Path) -
         respx.get(resource.url).mock(return_value=httpx.Response(200, content=body.read_bytes()))
 
     root = tmp_path / "lake"
-    for step in ("ingest", "bronze", "silver", "gold"):
+    for step in ("ingest", "bronze", "silver", "gold", "export"):
         main([step, "--local", str(root)])
 
     manifest = json.loads((root / "landing" / "manifest.json").read_text())
@@ -35,3 +35,6 @@ def test_pipeline_runs_end_to_end_locally(spark: SparkSession, tmp_path: Path) -
     assert spark.table("silver_daily").count() == 4
     assert spark.table("gold_monthly").filter("very_hot_days = 1").count() == 4
     assert spark.table("gold_records").count() > 0
+    exported = json.loads((root / "exports" / "climate.json").read_text())
+    assert {s["station_id"] for s in exported["stations"]} == {"97101014", "97209001"}
+    assert len(exported["records"]) == spark.table("gold_records").count()

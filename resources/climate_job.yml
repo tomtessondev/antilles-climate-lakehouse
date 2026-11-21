@@ -45,3 +45,12 @@ resources:
             package_name: antilles_climate_lakehouse
             entry_point: antilles-lakehouse
             parameters: ["gold"]
+        # climate.json in the exports volume, published to the repository's data branch by
+        # .github/workflows/publish.yml for the portfolio site.
+        - task_key: export
+          depends_on: [{task_key: gold}]
+          environment_key: default
+          python_wheel_task:
+            package_name: antilles_climate_lakehouse
+            entry_point: antilles-lakehouse
+            parameters: ["export"]

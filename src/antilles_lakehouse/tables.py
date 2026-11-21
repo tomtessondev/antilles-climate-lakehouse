@@ -14,13 +14,22 @@ class Tables:
     silver_stations: str
     gold_prefix: str
     landing: Path
+    # Folder of climate.json, the gold tables exported for the portfolio site.
+    exports: Path
     # Unity Catalog objects to create on Databricks; None locally.
     catalog: str | None = None
     schema: str | None = None
 
     @classmethod
     def local(cls, root: Path) -> Tables:
-        return cls("bronze_daily", "silver_daily", "silver_stations", "gold", root / "landing")
+        return cls(
+            "bronze_daily",
+            "silver_daily",
+            "silver_stations",
+            "gold",
+            root / "landing",
+            root / "exports",
+        )
 
     @classmethod
     def unity(cls, catalog: str = "antilles", schema: str = "climate") -> Tables:
@@ -31,6 +40,7 @@ class Tables:
             f"{name}.silver_stations",
             f"{name}.gold",
             Path(f"/Volumes/{catalog}/{schema}/landing"),
+            Path(f"/Volumes/{catalog}/{schema}/exports"),
             catalog,
             schema,
         )
