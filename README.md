@@ -28,9 +28,14 @@ and [caribbean-ais-stream](https://github.com/tomtessondev/caribbean-ais-stream)
  (dataset of daily    lists the   one .csv.gz per   rows as text,      typed, cleaned,       monthly, anomalies,
   climate series)     971/972     file, sha1 +      one current copy   MERGE on (station,    extremes on a station
                       files       manifest          per file           day), stations        panel, records
+                                                                                                    │
+                                    data branch ◄── publish.yml ◄── exports volume ◄── export ◄─────┘
+                                    (climate.json,   (GitHub         climate.json      gold tables as one
+                                     read by the      Actions,                          JSON document
+                                     portfolio site)  monthly)
 ```
 
-On Databricks the four steps are the four tasks of one serverless job, deployed with a
+On Databricks the five steps are the five tasks of one serverless job, deployed with a
 Databricks Asset Bundle (`databricks.yml`, `resources/climate_job.yml`); the tables live in
 `antilles.climate`. Locally the same code runs on a Spark with Delta, tables under `data/`.
 
@@ -44,9 +49,11 @@ Databricks Asset Bundle (`databricks.yml`, `resources/climate_job.yml`); the tab
 | Bronze | Delta, one current copy per file (`replaceWhere`), history by time travel | `bronze.py` |
 | Silver | typing, physical bounds, quality codes, Delta `MERGE`, station dimension | `silver.py` |
 | Gold | monthly climate, 1991-2020 normals and anomalies, extremes on a station panel, records | `gold.py` |
+| Export | the gold tables as `climate.json` for the portfolio site's climate explorer | `export.py` |
 | Jobs | one entry point per step, local or Unity Catalog | `jobs.py`, `tables.py` |
+| Publishing | monthly GitHub Actions workflow, Databricks CLI, one-commit `data` branch | `.github/workflows/publish.yml` |
 | Deployment | Databricks Asset Bundle, serverless environment 4, Databricks Free Edition | `databricks.yml`, `resources/` |
-| Quality | pytest on a local Spark (bronze, silver, gold, the whole job), respx, ruff, mypy `--strict`, GitHub Actions | `tests/`, `.github/workflows/ci.yml` |
+| Quality | pytest on a local Spark (bronze, silver, gold, export, the whole job), respx, ruff, mypy `--strict`, GitHub Actions | `tests/`, `.github/workflows/ci.yml` |
 
 ## The data
 
@@ -92,6 +99,7 @@ python -m venv .venv && source .venv/bin/activate
 make install        # the package with its local Spark (Java 17 needed: JAVA_HOME)
 make check          # ruff, mypy, the tests on a local Spark
 make run-local      # the whole pipeline on the real files, tables under data/
+make export-local   # only data/exports/climate.json, from the tables of a previous run-local
 python scripts/charts.py data   # the charts above, from the local gold tables
 ```
 
@@ -100,11 +108,45 @@ On Databricks (Free Edition is enough), from this folder:
 ```bash
 databricks auth login --host https://<your workspace>.cloud.databricks.com
 databricks bundle deploy      # the wheel and the job "antilles-climate" (schedule paused)
-databricks bundle run climate # ingest, bronze, silver, gold: about 3 minutes
+databricks bundle run climate # ingest, bronze, silver, gold, export: about 3 minutes
 ```
 
-The first run creates the catalog `antilles`, the schema `climate` and the volume `landing`.
-`databricks bundle destroy` removes the job; `DROP CATALOG antilles CASCADE` the tables.
+The first run creates the catalog `antilles`, the schema `climate` and the volumes `landing`
+and `exports`. `databricks bundle destroy` removes the job; `DROP CATALOG antilles CASCADE`
+the tables.
+
+## Publishing climate.json
+
+The `export` task writes the gold tables as one JSON document (about 520 KB, 50 KB
+gzipped) to `/Volumes/antilles/climate/exports/climate.json`. The portfolio site's climate
+explorer reads it from the `data` branch of this repository:
+<https://raw.githubusercontent.com/tomtessondev/antilles-climate-lakehouse/data/climate.json>.
+
+| Key | Content |
+| --- | --- |
+| `generated_at`, `normal_period` | ISO UTC time of the export; `"1991-2020"` |
+| `stations` | id, name, territory, lat, lon, altitude, first and last year of data |
+| `territory_anomalies` | per territory, year and month: mean of the station Tx and rain anomalies, number of stations |
+| `station_year_anomalies` | per station and year: mean Tx anomaly of its complete months, only with 10 or more |
+| `extremes` | `gold_extremes`: hot and heavy-rain days per panel station, with the panel size |
+| `records` | `gold_records`: each station's highest Tx, daily rain and gust, with the date |
+
+Anomalies and means are rounded to 0.01. The contract is checked by `tests/test_export.py`
+and, on the site, by a zod schema.
+
+`.github/workflows/publish.yml` runs on the 2nd of each month at 14:00 UTC (after the job's
+schedule, 06:00 in the Antilles) and on demand. It downloads the file with the Databricks
+CLI and force-pushes a `data` branch holding a single commit, so the repository does not grow
+with each export. It needs two settings that only the workspace owner can create:
+
+- repository variable `DATABRICKS_HOST`: the workspace URL (`https://<workspace>.cloud.databricks.com`);
+- repository secret `DATABRICKS_TOKEN`: a personal access token (Databricks: Settings,
+  Developer, Access tokens), with a lifetime of at most a year, renewed before it expires.
+
+Until both exist the workflow ends with a notice and publishes nothing. The file can also
+be published by hand after a run: `databricks fs cp
+dbfs:/Volumes/antilles/climate/exports/climate.json .`, then the same one-commit push as the
+workflow.
 
 ## Design choices
 
