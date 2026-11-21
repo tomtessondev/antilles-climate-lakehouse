@@ -117,7 +117,7 @@ the tables.
 
 ## Publishing climate.json
 
-The `export` task writes the gold tables as one JSON document (about 520 KB, 50 KB
+The `export` task writes the gold tables as one JSON document (about 580 KB, 53 KB
 gzipped) to `/Volumes/antilles/climate/exports/climate.json`. The portfolio site's climate
 explorer reads it from the `data` branch of this repository:
 <https://raw.githubusercontent.com/tomtessondev/antilles-climate-lakehouse/data/climate.json>.
