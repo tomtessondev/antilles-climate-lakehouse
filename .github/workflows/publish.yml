@@ -1,0 +1,62 @@
+name: Publish climate.json
+
+# The Databricks job's export task writes climate.json to the volume
+# antilles.climate.exports; this workflow copies it to the data branch, where the portfolio
+# site reads it. The job's schedule (paused until the owner turns it on) is the 2nd of the
+# month at 06:00 in the Antilles (10:00 UTC): 14:00 UTC leaves it time to finish. Without a
+# new run, the same file is published again, which changes nothing for the site.
+on:
+  schedule:
+    - cron: "0 14 2 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write # push climate.json to the data branch
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      VOLUME_FILE: dbfs:/Volumes/antilles/climate/exports/climate.json
+    steps:
+      # Only the owner can create the workspace token: until then, skip without failing.
+      # Only whether they are set reaches this step, not their values.
+      - name: Check the Databricks credentials
+        id: credentials
+        env:
+          HAS_HOST: ${{ vars.DATABRICKS_HOST != '' }}
+          HAS_TOKEN: ${{ secrets.DATABRICKS_TOKEN != '' }}
+        run: |
+          if [ "$HAS_HOST" != "true" ] || [ "$HAS_TOKEN" != "true" ]; then
+            echo "::notice title=Skipped::Repository variable DATABRICKS_HOST or secret DATABRICKS_TOKEN is missing; nothing published (see the README, Publishing)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.credentials.outputs.ready == 'true'
+        uses: databricks/setup-cli@2da6132749245fbffb3c10d57cec219de3669967 # v1.26.0
+      - name: Download climate.json from the volume
+        if: steps.credentials.outputs.ready == 'true'
+        env:
+          DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/publish"
+          databricks fs cp "$VOLUME_FILE" "$RUNNER_TEMP/publish/climate.json"
+          jq -e '.generated_at and (.stations | length > 0) and (.territory_anomalies | length > 0)' \
+            "$RUNNER_TEMP/publish/climate.json" > /dev/null
+          echo "climate.json: $(wc -c < "$RUNNER_TEMP/publish/climate.json") bytes"
+      # A single commit, replaced on every run, so the repository does not grow by one
+      # export a month. Only from main: a run on another branch checks the file and stops.
+      - name: Publish to the data branch
+        if: steps.credentials.outputs.ready == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: ${{ runner.temp }}/publish
+        run: |
+          git init -q -b data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add climate.json
+          git commit -q -m "Climate export from run $GITHUB_RUN_ID"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" data
