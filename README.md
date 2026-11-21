@@ -138,7 +138,8 @@ and, on the site, by a zod schema.
 
 `.github/workflows/publish.yml` runs on the 2nd of each month at 14:00 UTC (after the job's
 schedule, 06:00 in the Antilles) and on demand. It downloads the file with the Databricks
-CLI and force-pushes a `data` branch holding a single commit, so the repository does not grow
+CLI, checks it is not empty and, from `main` only, force-pushes a `data` branch holding a
+single commit, so the repository does not grow
 with each export. It needs two settings that only the workspace owner can create:
 
 - repository variable `DATABRICKS_HOST`: the workspace URL (`https://<workspace>.cloud.databricks.com`);
